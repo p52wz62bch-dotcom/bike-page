@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>可见横版骑行游戏</title>
+<title>终点骑行游戏</title>
 
 <style>
 body {
     margin: 0;
     overflow: hidden;
     font-family: -apple-system;
-    background: #87c7ff;
+    background: linear-gradient(#87c7ff, #ffffff);
 }
 
 /* 世界 */
@@ -37,26 +37,25 @@ body {
     width: 300%;
     height: 140px;
     background: #2b2b2b;
-    animation: groundMove 2s linear infinite;
 }
 
-/* 路纹（让你“看见在动”） */
+/* 路纹 */
 .ground::after {
     content: "";
     position: absolute;
     top: 60px;
-    width: 200%;
+    width: 300%;
     height: 8px;
     background: repeating-linear-gradient(
         90deg,
         white 0px,
-        white 30px,
-        transparent 30px,
-        transparent 60px
+        white 40px,
+        transparent 40px,
+        transparent 80px
     );
 }
 
-/* 单车 */
+/* 单车（固定） */
 .bike {
     position: absolute;
     bottom: 160px;
@@ -77,24 +76,6 @@ body {
     animation: spin 0.4s linear infinite;
 }
 
-/* 金币（明显变大） */
-.coin {
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    background: gold;
-    border-radius: 50%;
-    border: 2px solid #b8860b;
-}
-
-/* 障碍（明显红色） */
-.obstacle {
-    position: absolute;
-    width: 26px;
-    height: 26px;
-    background: red;
-}
-
 /* UI */
 .ui {
     position: absolute;
@@ -103,12 +84,44 @@ body {
     z-index: 10;
 }
 
-/* 动画 */
-@keyframes groundMove {
-    from { transform: translateX(0); }
-    to { transform: translateX(-40%); }
+/* 金币 */
+.coin {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    background: gold;
+    border-radius: 50%;
 }
 
+/* 障碍 */
+.obstacle {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    background: red;
+}
+
+/* 终点旗 */
+.finish {
+    position: absolute;
+    width: 10px;
+    height: 160px;
+    background: red;
+    top: 200px;
+}
+
+/* 胜利 */
+.win {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    color: green;
+    display: none;
+}
+
+/* 动画 */
 @keyframes skyMove {
     from { transform: translateX(0); }
     to { transform: translateX(-10%); }
@@ -134,31 +147,37 @@ body {
     </div>
 
     <div class="ui">
-        🚲 分数：<span id="score">0</span><br><br>
+        🚲 距离：<span id="dist">0</span> / 2000<br>
         <button onclick="speedUp()">加速</button>
         <button onclick="speedDown()">减速</button>
     </div>
+
+    <div class="finish" id="finish"></div>
+
+    <div class="win" id="win">🏆 通关成功！</div>
 
 </div>
 
 <script>
 
-let speed = 2;
-let score = 0;
+let speed = 3;
+let dist = 0;
+let MAX = 2000;
+let gameOver = false;
 
-/* 控制速度 */
+/* 背景速度 */
+function updateSpeed() {
+    document.getElementById("ground").style.transform =
+        `translateX(-${dist * 2}px)`;
+}
+
+/* 控制 */
 function speedUp() {
     speed += 1;
-    update();
 }
 
 function speedDown() {
     speed = Math.max(1, speed - 1);
-    update();
-}
-
-function update() {
-    document.getElementById("ground").style.animationDuration = (2 / speed) + "s";
 }
 
 /* 金币 */
@@ -172,6 +191,8 @@ function spawnCoin() {
     let x = window.innerWidth;
 
     let move = setInterval(() => {
+        if (gameOver) return;
+
         x -= speed * 5;
         coin.style.left = x + "px";
 
@@ -180,12 +201,6 @@ function spawnCoin() {
             clearInterval(move);
         }
 
-        if (x < window.innerWidth / 2 + 30 && x > window.innerWidth / 2 - 30) {
-            score += 10;
-            document.getElementById("score").innerText = score;
-            coin.remove();
-            clearInterval(move);
-        }
     }, 30);
 }
 
@@ -200,6 +215,8 @@ function spawnObstacle() {
     let x = window.innerWidth;
 
     let move = setInterval(() => {
+        if (gameOver) return;
+
         x -= speed * 6;
         obs.style.left = x + "px";
 
@@ -208,19 +225,32 @@ function spawnObstacle() {
             clearInterval(move);
         }
 
-        if (x < window.innerWidth / 2 + 30 && x > window.innerWidth / 2 - 30) {
-            score -= 10;
-            document.getElementById("score").innerText = score;
-            obs.remove();
-            clearInterval(move);
-        }
     }, 30);
 }
 
-setInterval(spawnCoin, 1500);
-setInterval(spawnObstacle, 2500);
+/* 游戏主循环 */
+function loop() {
+    if (!gameOver) {
 
-update();
+        dist += speed;
+        updateSpeed();
+
+        document.getElementById("dist").innerText = Math.floor(dist);
+
+        /* 到终点 */
+        if (dist >= MAX) {
+            gameOver = true;
+            document.getElementById("win").style.display = "block";
+        }
+    }
+
+    requestAnimationFrame(loop);
+}
+
+setInterval(spawnCoin, 1200);
+setInterval(spawnObstacle, 2000);
+
+loop();
 
 </script>
 
