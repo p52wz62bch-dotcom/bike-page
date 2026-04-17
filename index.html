@@ -3,119 +3,147 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>单车加速版</title>
+<title>单车小游戏</title>
 
 <style>
 body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    background: #f5f5f7;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    background: linear-gradient(#cfe8ff, #ffffff);
+    overflow: hidden;
 }
 
-.container {
-    text-align: center;
-}
-
-.bike {
-    width: 220px;
-    height: 140px;
-    margin: 40px auto;
-    position: relative;
-}
-
-.wheel {
-    width: 60px;
-    height: 60px;
-    border: 4px solid #333;
-    border-radius: 50%;
+/* 跑道 */
+.road {
     position: absolute;
     bottom: 0;
-    animation: spin 2s linear infinite;
+    width: 200%;
+    height: 120px;
+    background: #333;
+    animation: moveRoad 2s linear infinite;
 }
 
-.wheel.left { left: 0; }
-.wheel.right { right: 0; }
+/* 地面线条 */
+.line {
+    position: absolute;
+    top: 55px;
+    width: 100%;
+    height: 10px;
+    background: repeating-linear-gradient(
+        90deg,
+        white 0px,
+        white 40px,
+        transparent 40px,
+        transparent 80px
+    );
+}
 
+/* 单车 */
+.bike {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* 车轮 */
+.wheel {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #000;
+    border-radius: 50%;
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    background: transparent;
+}
+
+/* 车架 */
 .frame {
-    width: 110px;
+    width: 100px;
     height: 4px;
-    background: #333;
-    position: absolute;
-    top: 50px;
-    left: 55px;
+    background: #000;
+    display: inline-block;
     transform: rotate(20deg);
+    position: relative;
+    top: -20px;
 }
 
-.seat {
-    width: 30px;
-    height: 4px;
-    background: #333;
+/* UI */
+.ui {
     position: absolute;
-    top: 25px;
-    left: 70px;
-}
-
-.handle {
-    width: 30px;
-    height: 4px;
-    background: #333;
-    position: absolute;
-    top: 35px;
-    right: 45px;
-    transform: rotate(-30deg);
+    top: 20px;
+    left: 20px;
+    font-size: 18px;
 }
 
 button {
-    margin-top: 20px;
-    padding: 10px 20px;
+    padding: 10px 15px;
     border: none;
-    border-radius: 20px;
+    border-radius: 10px;
     background: black;
     color: white;
+    margin-top: 10px;
 }
 
-button:hover {
-    background: #333;
+button:active {
+    transform: scale(0.95);
 }
 
+/* 动画 */
 @keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
+}
+
+@keyframes moveRoad {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-    <h1>🚲 单车加速版</h1>
+<div class="ui">
+    <div>🚲 单车小游戏</div>
+    <div>速度：<span id="speed">1</span></div>
+    <button onclick="accelerate()">加速</button>
+    <button onclick="slow()">减速</button>
+</div>
 
-    <div class="bike">
-        <div class="wheel left"></div>
-        <div class="wheel right"></div>
-        <div class="frame"></div>
-        <div class="seat"></div>
-        <div class="handle"></div>
-    </div>
+<div class="bike">
+    <div class="wheel"></div>
+    <div class="frame"></div>
+    <div class="wheel"></div>
+</div>
 
-    <button onclick="changeSpeed()">加速 / 减速</button>
+<div class="road">
+    <div class="line"></div>
 </div>
 
 <script>
-let speed = 2;
+let speed = 1;
 
-function changeSpeed() {
-    const wheels = document.querySelectorAll('.wheel');
+function accelerate() {
+    speed += 0.5;
+    updateSpeed();
+}
 
-    speed = (speed === 2) ? 0.5 : 2;
+function slow() {
+    speed = Math.max(0.5, speed - 0.5);
+    updateSpeed();
+}
 
-    wheels.forEach(w => {
-        w.style.animationDuration = speed + "s";
+function updateSpeed() {
+    document.getElementById("speed").innerText = speed;
+
+    // 车轮速度
+    document.querySelectorAll(".wheel").forEach(w => {
+        w.style.animationDuration = (1 / speed) + "s";
     });
+
+    // 路的速度
+    document.querySelector(".road").style.animationDuration = (2 / speed) + "s";
 }
 </script>
 
