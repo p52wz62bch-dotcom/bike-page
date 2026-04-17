@@ -8,85 +8,76 @@
 <style>
 body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    background: linear-gradient(#cfe8ff, #ffffff);
+    font-family: Arial;
+    background: #cfe8ff;
     overflow: hidden;
+}
+
+/* UI */
+.ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    font-size: 16px;
+}
+
+button {
+    margin: 3px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    background: black;
+    color: white;
 }
 
 /* 跑道 */
 .road {
     position: absolute;
     bottom: 0;
-    width: 200%;
+    width: 100%;
     height: 120px;
     background: #333;
-    animation: moveRoad 2s linear infinite;
-}
-
-/* 地面线条 */
-.line {
-    position: absolute;
-    top: 55px;
-    width: 100%;
-    height: 10px;
-    background: repeating-linear-gradient(
-        90deg,
-        white 0px,
-        white 40px,
-        transparent 40px,
-        transparent 80px
-    );
 }
 
 /* 单车 */
 .bike {
     position: absolute;
-    bottom: 80px;
+    bottom: 120px;
     left: 50%;
     transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
 }
 
 /* 车轮 */
 .wheel {
-    width: 50px;
-    height: 50px;
-    border: 4px solid #000;
+    width: 25px;
+    height: 25px;
+    border: 3px solid #000;
     border-radius: 50%;
-    display: inline-block;
-    animation: spin 1s linear infinite;
-    background: transparent;
-}
-
-/* 车架 */
-.frame {
-    width: 100px;
-    height: 4px;
-    background: #000;
-    display: inline-block;
-    transform: rotate(20deg);
-    position: relative;
-    top: -20px;
-}
-
-/* UI */
-.ui {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    font-size: 18px;
+    animation: spin linear infinite;
 }
 
-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 10px;
-    background: black;
-    color: white;
-    margin-top: 10px;
+.wheel.left { left: 0; bottom: 0; }
+.wheel.right { right: 0; bottom: 0; }
+
+/* 金币 */
+.coin {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: gold;
+    border-radius: 50%;
 }
 
-button:active {
-    transform: scale(0.95);
+/* 障碍 */
+.obstacle {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    background: red;
 }
 
 /* 动画 */
@@ -94,57 +85,142 @@ button:active {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
-
-@keyframes moveRoad {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-}
 </style>
 </head>
 
 <body>
 
 <div class="ui">
-    <div>🚲 单车小游戏</div>
-    <div>速度：<span id="speed">1</span></div>
-    <button onclick="accelerate()">加速</button>
-    <button onclick="slow()">减速</button>
+    🚲 分数: <span id="score">0</span><br>
+    ⚡ 速度: <span id="speed">1</span><br>
+    <button onclick="moveLeft()">⬅</button>
+    <button onclick="moveRight()">➡</button>
+    <button onclick="speedUp()">加速</button>
+    <button onclick="speedDown()">减速</button>
 </div>
 
-<div class="bike">
-    <div class="wheel"></div>
-    <div class="frame"></div>
-    <div class="wheel"></div>
+<div class="bike" id="bike">
+    <div class="wheel left"></div>
+    <div class="wheel right"></div>
 </div>
 
-<div class="road">
-    <div class="line"></div>
-</div>
+<div class="road"></div>
 
 <script>
+let score = 0;
 let speed = 1;
+let bikeX = window.innerWidth / 2;
+const bike = document.getElementById("bike");
 
-function accelerate() {
-    speed += 0.5;
-    updateSpeed();
-}
-
-function slow() {
-    speed = Math.max(0.5, speed - 0.5);
-    updateSpeed();
-}
-
-function updateSpeed() {
+function update() {
+    document.getElementById("score").innerText = score;
     document.getElementById("speed").innerText = speed;
 
-    // 车轮速度
     document.querySelectorAll(".wheel").forEach(w => {
-        w.style.animationDuration = (1 / speed) + "s";
+        w.style.animationDuration = (0.5 / speed) + "s";
     });
 
-    // 路的速度
-    document.querySelector(".road").style.animationDuration = (2 / speed) + "s";
+    bike.style.left = bikeX + "px";
 }
+
+function moveLeft() {
+    bikeX -= 20;
+    update();
+}
+
+function moveRight() {
+    bikeX += 20;
+    update();
+}
+
+function speedUp() {
+    speed += 0.5;
+    update();
+}
+
+function speedDown() {
+    speed = Math.max(0.5, speed - 0.5);
+    update();
+}
+
+/* 随机金币 */
+function spawnCoin() {
+    const coin = document.createElement("div");
+    coin.className = "coin";
+    coin.style.left = Math.random() * window.innerWidth + "px";
+    coin.style.top = "-20px";
+    document.body.appendChild(coin);
+
+    let y = -20;
+
+    let fall = setInterval(() => {
+        y += 3 * speed;
+        coin.style.top = y + "px";
+
+        if (y > window.innerHeight) {
+            coin.remove();
+            clearInterval(fall);
+        }
+
+        // 碰撞检测
+        const bikeRect = bike.getBoundingClientRect();
+        const coinRect = coin.getBoundingClientRect();
+
+        if (
+            coinRect.left < bikeRect.right &&
+            coinRect.right > bikeRect.left &&
+            coinRect.top < bikeRect.bottom &&
+            coinRect.bottom > bikeRect.top
+        ) {
+            score += 10;
+            coin.remove();
+            clearInterval(fall);
+            update();
+        }
+    }, 30);
+}
+
+/* 障碍 */
+function spawnObstacle() {
+    const obs = document.createElement("div");
+    obs.className = "obstacle";
+    obs.style.left = Math.random() * window.innerWidth + "px";
+    obs.style.top = "-20px";
+    document.body.appendChild(obs);
+
+    let y = -20;
+
+    let fall = setInterval(() => {
+        y += 4 * speed;
+        obs.style.top = y + "px";
+
+        if (y > window.innerHeight) {
+            obs.remove();
+            clearInterval(fall);
+        }
+
+        const bikeRect = bike.getBoundingClientRect();
+        const obsRect = obs.getBoundingClientRect();
+
+        if (
+            obsRect.left < bikeRect.right &&
+            obsRect.right > bikeRect.left &&
+            obsRect.top < bikeRect.bottom &&
+            obsRect.bottom > bikeRect.top
+        ) {
+            score -= 10;
+            obs.remove();
+            clearInterval(fall);
+            update();
+        }
+    }, 30);
+}
+
+/* 游戏循环 */
+setInterval(spawnCoin, 2000);
+setInterval(spawnObstacle, 3000);
+
+update();
 </script>
 
 </body>
