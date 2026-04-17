@@ -3,154 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>单车终点赛</title>
+<title>单车骑行模拟</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial;
     overflow: hidden;
-    background: #cfe8ff;
+    font-family: -apple-system, BlinkMacSystemFont;
+    background: linear-gradient(#cfe8ff, #ffffff);
 }
 
-/* 游戏区域 */
-.game {
+/* 场景 */
+.scene {
     position: relative;
     width: 100vw;
     height: 100vh;
+    overflow: hidden;
 }
 
-/* 跑道 */
+/* 路（背景） */
 .road {
     position: absolute;
     bottom: 0;
     width: 200%;
-    height: 120px;
-    background: #333;
+    height: 140px;
+    background: #2b2b2b;
+    transform: skewX(-10deg);
+    left: -50%;
 }
 
 /* 路面线 */
-.line {
+.road::after {
+    content: "";
     position: absolute;
-    top: 55px;
-    width: 100%;
-    height: 10px;
+    top: 60px;
+    width: 200%;
+    height: 6px;
     background: repeating-linear-gradient(
         90deg,
         white 0px,
-        white 40px,
-        transparent 40px,
-        transparent 80px
+        white 50px,
+        transparent 50px,
+        transparent 100px
     );
 }
 
-/* 单车 */
+/* 单车（重点：浮在路上方） */
 .bike {
     position: absolute;
-    bottom: 130px;
-    left: 100px;
-    width: 60px;
-    height: 60px;
+    bottom: 160px;   /* ⭐关键：抬高避免“掉进路里” */
+    left: 0;
+    width: 80px;
+    height: 80px;
+    transition: left 0.2s linear;
 }
 
 /* 车轮 */
 .wheel {
-    width: 25px;
-    height: 25px;
-    border: 3px solid #000;
+    width: 30px;
+    height: 30px;
+    border: 3px solid black;
     border-radius: 50%;
     position: absolute;
-    animation: spin linear infinite;
-}
-
-.wheel.left { left: 0; bottom: 0; }
-.wheel.right { right: 0; bottom: 0; }
-
-/* 终点线 */
-.finish {
-    position: absolute;
-    right: 50px;
-    bottom: 120px;
-    width: 10px;
-    height: 150px;
-    background: red;
+    bottom: 0;
 }
 
 /* UI */
 .ui {
     position: absolute;
-    top: 10px;
-    left: 10px;
+    top: 20px;
+    left: 20px;
     z-index: 10;
 }
 
 button {
     padding: 8px 12px;
-    margin: 3px;
+    border: none;
+    background: black;
+    color: white;
+    border-radius: 8px;
+    margin-right: 5px;
 }
 
-/* 胜利弹窗 */
-.win {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 40px;
-    display: none;
-    color: green;
-}
-
-/* 动画 */
-@keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-}
 </style>
 </head>
 
 <body>
 
-<div class="game">
+<div class="scene">
 
     <div class="ui">
-        🚲 距离：<span id="distance">0</span> m<br>
-        <button onclick="move()">前进</button>
+        🚲 位置：<span id="pos">0</span>
+        <br><br>
+        <button onclick="ride()">骑行</button>
+        <button onclick="reset()">重置</button>
     </div>
 
     <div class="bike" id="bike">
-        <div class="wheel left"></div>
-        <div class="wheel right"></div>
+        <div class="wheel" style="left:0;"></div>
+        <div class="wheel" style="right:0;"></div>
     </div>
 
-    <div class="road">
-        <div class="line"></div>
-    </div>
-
-    <div class="finish"></div>
-
-    <div class="win" id="win">🏆 通关成功！</div>
+    <div class="road"></div>
 
 </div>
 
 <script>
-let distance = 0;
-let speed = 5;
-let bike = document.getElementById("bike");
-let win = document.getElementById("win");
+let x = 0;
 
-function move() {
-    distance += speed;
-    document.getElementById("distance").innerText = distance;
-
-    bike.style.left = (100 + distance) + "px";
-
-    checkWin();
+function ride() {
+    x += 30;
+    document.getElementById("bike").style.left = x + "px";
+    document.getElementById("pos").innerText = x;
 }
 
-function checkWin() {
-    if (distance >= 500) {
-        win.style.display = "block";
-    }
+function reset() {
+    x = 0;
+    document.getElementById("bike").style.left = "0px";
+    document.getElementById("pos").innerText = 0;
 }
 </script>
 
