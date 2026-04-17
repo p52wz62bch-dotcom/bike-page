@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>横版骑行游戏</title>
+<title>可见横版骑行游戏</title>
 
 <style>
 body {
@@ -13,7 +13,7 @@ body {
     background: #87c7ff;
 }
 
-/* 世界容器 */
+/* 世界 */
 .world {
     position: relative;
     width: 100vw;
@@ -21,42 +21,42 @@ body {
     overflow: hidden;
 }
 
-/* 背景（滚动天空） */
+/* 天空 */
 .sky {
     position: absolute;
     width: 200%;
     height: 100%;
     background: linear-gradient(#87c7ff, #ffffff);
-    animation: skyMove 8s linear infinite;
+    animation: skyMove 6s linear infinite;
 }
 
-/* 地面（滚动） */
+/* 地面 */
 .ground {
     position: absolute;
     bottom: 0;
     width: 300%;
     height: 140px;
     background: #2b2b2b;
-    animation: move 3s linear infinite;
+    animation: groundMove 2s linear infinite;
 }
 
-/* 路面线 */
+/* 路纹（让你“看见在动”） */
 .ground::after {
     content: "";
     position: absolute;
     top: 60px;
-    width: 100%;
-    height: 6px;
+    width: 200%;
+    height: 8px;
     background: repeating-linear-gradient(
         90deg,
         white 0px,
-        white 50px,
-        transparent 50px,
-        transparent 100px
+        white 30px,
+        transparent 30px,
+        transparent 60px
     );
 }
 
-/* 单车（固定在屏幕中间） */
+/* 单车 */
 .bike {
     position: absolute;
     bottom: 160px;
@@ -68,29 +68,30 @@ body {
 
 /* 车轮 */
 .wheel {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border: 3px solid black;
     border-radius: 50%;
     position: absolute;
     bottom: 0;
-    animation: spin 0.5s linear infinite;
+    animation: spin 0.4s linear infinite;
 }
 
-/* 金币 */
+/* 金币（明显变大） */
 .coin {
     position: absolute;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
+    width: 26px;
+    height: 26px;
     background: gold;
+    border-radius: 50%;
+    border: 2px solid #b8860b;
 }
 
-/* 障碍 */
+/* 障碍（明显红色） */
 .obstacle {
     position: absolute;
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     background: red;
 }
 
@@ -100,26 +101,17 @@ body {
     top: 10px;
     left: 10px;
     z-index: 10;
-    color: #000;
-}
-
-button {
-    padding: 8px 12px;
-    border: none;
-    border-radius: 8px;
-    background: black;
-    color: white;
 }
 
 /* 动画 */
-@keyframes move {
+@keyframes groundMove {
     from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
+    to { transform: translateX(-40%); }
 }
 
 @keyframes skyMove {
     from { transform: translateX(0); }
-    to { transform: translateX(-20%); }
+    to { transform: translateX(-10%); }
 }
 
 @keyframes spin {
@@ -134,7 +126,6 @@ button {
 <div class="world">
 
     <div class="sky"></div>
-
     <div class="ground" id="ground"></div>
 
     <div class="bike">
@@ -152,22 +143,22 @@ button {
 
 <script>
 
-let speed = 3;
+let speed = 2;
 let score = 0;
 
-/* 控制速度 = 世界移动速度 */
+/* 控制速度 */
 function speedUp() {
     speed += 1;
-    updateSpeed();
+    update();
 }
 
 function speedDown() {
     speed = Math.max(1, speed - 1);
-    updateSpeed();
+    update();
 }
 
-function updateSpeed() {
-    document.getElementById("ground").style.animationDuration = (3 / speed) + "s";
+function update() {
+    document.getElementById("ground").style.animationDuration = (2 / speed) + "s";
 }
 
 /* 金币 */
@@ -175,13 +166,13 @@ function spawnCoin() {
     const coin = document.createElement("div");
     coin.className = "coin";
     coin.style.left = window.innerWidth + "px";
-    coin.style.top = (Math.random() * 200 + 200) + "px";
+    coin.style.top = (200 + Math.random() * 200) + "px";
     document.body.appendChild(coin);
 
     let x = window.innerWidth;
 
     let move = setInterval(() => {
-        x -= speed * 3;
+        x -= speed * 5;
         coin.style.left = x + "px";
 
         if (x < -50) {
@@ -189,8 +180,7 @@ function spawnCoin() {
             clearInterval(move);
         }
 
-        // 碰撞（简化）
-        if (x < window.innerWidth / 2 + 40 && x > window.innerWidth / 2 - 40) {
+        if (x < window.innerWidth / 2 + 30 && x > window.innerWidth / 2 - 30) {
             score += 10;
             document.getElementById("score").innerText = score;
             coin.remove();
@@ -210,7 +200,7 @@ function spawnObstacle() {
     let x = window.innerWidth;
 
     let move = setInterval(() => {
-        x -= speed * 4;
+        x -= speed * 6;
         obs.style.left = x + "px";
 
         if (x < -50) {
@@ -227,11 +217,10 @@ function spawnObstacle() {
     }, 30);
 }
 
-/* 游戏循环 */
-setInterval(spawnCoin, 2000);
-setInterval(spawnObstacle, 3000);
+setInterval(spawnCoin, 1500);
+setInterval(spawnObstacle, 2500);
 
-updateSpeed();
+update();
 
 </script>
 
