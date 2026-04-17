@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>跑酷终点版</title>
+<title>跑酷终点修复版</title>
 
 <style>
 body {
@@ -58,7 +58,7 @@ body {
     transform: translateX(-50%);
 }
 
-/* 三车道位置 */
+/* 三车道 */
 .lane0 { left: 35%; }
 .lane1 { left: 50%; }
 .lane2 { left: 65%; }
@@ -80,14 +80,15 @@ body {
     background: red;
 }
 
-/* 终点 */
+/* 终点（关键修复：真正可见） */
 .finish {
     position: absolute;
-    right: 0;
-    bottom: 140px;
-    width: 10px;
-    height: 180px;
+    left: 50%;
+    top: -100px;
+    width: 12px;
+    height: 120px;
     background: green;
+    transform: translateX(-50%);
 }
 
 /* UI */
@@ -107,6 +108,19 @@ body {
     color: green;
     display: none;
 }
+
+/* 重开按钮 */
+.restart {
+    position: absolute;
+    top: 55%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 12px 18px;
+    background: black;
+    color: white;
+    border-radius: 10px;
+    display: none;
+}
 </style>
 </head>
 
@@ -118,7 +132,7 @@ body {
 
     <div class="player lane1" id="player"></div>
 
-    <div class="finish"></div>
+    <div class="finish" id="finish"></div>
 
     <div class="ui">
         🪙 分数：<span id="score">0</span><br>
@@ -126,6 +140,8 @@ body {
     </div>
 
     <div class="win" id="win">🏆 通关成功！</div>
+
+    <button class="restart" id="restartBtn">重新开始</button>
 
 </div>
 
@@ -138,16 +154,16 @@ let score = 0;
 let dist = 0;
 let MAX = 2000;
 
-let speed = 4;
 let gameOver = false;
+let speed = 4;
 
-/* 切换车道 */
+/* 车道 */
 function setLane(l) {
     lane = Math.max(0, Math.min(2, l));
     player.className = "player lane" + lane;
 }
 
-/* 触摸滑动控制 */
+/* 触摸控制 */
 let startX = 0;
 
 document.addEventListener("touchstart", e => {
@@ -177,12 +193,16 @@ function spawnCoin() {
         y += speed * 3;
         c.style.top = y + "px";
 
-        if (y > window.innerHeight) c.remove();
+        if (y > window.innerHeight) {
+            c.remove();
+            clearInterval(move);
+        }
 
-        if (y > window.innerHeight - 200) {
+        if (y > window.innerHeight - 200 && Math.floor(Math.random()*3) === lane) {
             score++;
             document.getElementById("score").innerText = score;
             c.remove();
+            clearInterval(move);
         }
 
     }, 30);
@@ -204,34 +224,48 @@ function spawnObstacle() {
         y += speed * 4;
         o.style.top = y + "px";
 
-        if (y > window.innerHeight) o.remove();
+        if (y > window.innerHeight - 200 && lane === Math.floor(Math.random()*3)) {
+            gameOver = true;
+            document.getElementById("win").innerText = "💥 撞到障碍！";
+            document.getElementById("win").style.display = "block";
+            showRestart();
+        }
 
-        if (y > window.innerHeight - 200) {
-            if (Math.floor(Math.random()*3) === lane) {
-                gameOver = true;
-                alert("撞到障碍！");
-            }
+        if (y > window.innerHeight) {
             o.remove();
+            clearInterval(move);
         }
 
     }, 30);
 }
 
-/* 主循环 */
+/* 终点检测 */
 function loop() {
+
     if (!gameOver) {
 
         dist += speed;
         document.getElementById("dist").innerText = Math.floor(dist);
 
+        /* 终点判断 */
         if (dist >= MAX) {
             gameOver = true;
             document.getElementById("win").style.display = "block";
+            showRestart();
         }
     }
 
     requestAnimationFrame(loop);
 }
+
+/* 重开 */
+function showRestart() {
+    document.getElementById("restartBtn").style.display = "block";
+}
+
+document.getElementById("restartBtn").onclick = () => {
+    location.reload();
+};
 
 setInterval(spawnCoin, 1200);
 setInterval(spawnObstacle, 1600);
