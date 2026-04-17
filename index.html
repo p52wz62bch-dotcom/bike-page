@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>流畅单车骑行</title>
+<title>单车终点完整版</title>
 
 <style>
 body {
@@ -17,14 +17,13 @@ body {
     position: relative;
     width: 100vw;
     height: 100vh;
-    overflow: hidden;
 }
 
 /* 路 */
 .road {
     position: absolute;
     bottom: 0;
-    width: 200%;
+    width: 300%;
     height: 140px;
     background: #2b2b2b;
 }
@@ -34,18 +33,39 @@ body {
     position: absolute;
     bottom: 160px;
     left: 0;
-    width: 80px;
-    height: 80px;
+    width: 90px;
+    height: 60px;
 }
 
 /* 车轮 */
 .wheel {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border: 3px solid black;
     border-radius: 50%;
     position: absolute;
     bottom: 0;
+}
+
+/* 车架（恢复了！！） */
+.frame {
+    position: absolute;
+    width: 50px;
+    height: 3px;
+    background: black;
+    top: 25px;
+    left: 20px;
+    transform: rotate(20deg);
+}
+
+/* 终点 */
+.finish {
+    position: absolute;
+    right: 80px;
+    bottom: 140px;
+    width: 10px;
+    height: 120px;
+    background: red;
 }
 
 /* UI */
@@ -53,6 +73,7 @@ body {
     position: absolute;
     top: 20px;
     left: 20px;
+    z-index: 10;
 }
 
 button {
@@ -62,6 +83,17 @@ button {
     color: white;
     border-radius: 10px;
 }
+
+/* 胜利 */
+.win {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    display: none;
+    color: green;
+}
 </style>
 </head>
 
@@ -70,63 +102,70 @@ button {
 <div class="scene">
 
     <div class="ui">
-        🚲 速度：<span id="speed">0</span><br><br>
+        🚲 距离：<span id="dist">0</span><br><br>
         <button id="rideBtn">按住骑行</button>
-        <button onclick="reset()">重置</button>
     </div>
 
     <div class="bike" id="bike">
         <div class="wheel" style="left:0;"></div>
         <div class="wheel" style="right:0;"></div>
+        <div class="frame"></div>
     </div>
 
     <div class="road"></div>
+
+    <div class="finish"></div>
+
+    <div class="win" id="win">🏆 通关成功！</div>
 
 </div>
 
 <script>
 let x = 0;
-let speed = 0;
 let riding = false;
+let speed = 0;
 
 const bike = document.getElementById("bike");
-const speedText = document.getElementById("speed");
+const dist = document.getElementById("dist");
+const win = document.getElementById("win");
 
-/* 按住开始 */
 const btn = document.getElementById("rideBtn");
 
-btn.addEventListener("touchstart", startRide);
-btn.addEventListener("mousedown", startRide);
+/* 兼容手机 + iPad + 鼠标 */
+btn.addEventListener("touchstart", start);
+btn.addEventListener("mousedown", start);
 
-btn.addEventListener("touchend", stopRide);
-btn.addEventListener("mouseup", stopRide);
+btn.addEventListener("touchend", stop);
+btn.addEventListener("mouseup", stop);
 
-function startRide() {
+function start() {
     riding = true;
-    speed = 6;
+    speed = 4;
 }
 
-/* 松开停止 */
-function stopRide() {
+function stop() {
     riding = false;
     speed = 0;
 }
 
-/* 重置 */
-function reset() {
-    x = 0;
-    bike.style.left = "0px";
-}
-
-/* 动画帧（关键优化） */
+/* 游戏循环 */
 function loop() {
     if (riding) {
         x += speed;
         bike.style.left = x + "px";
-        speedText.innerText = speed;
+        dist.innerText = Math.floor(x);
+
+        checkWin();
     }
 
     requestAnimationFrame(loop);
+}
+
+function checkWin() {
+    if (x > 900) {
+        win.style.display = "block";
+        riding = false;
+    }
 }
 
 loop();
