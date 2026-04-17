@@ -27,14 +27,17 @@ body {
     text-align: center;
 }
 
-/* 图片 */
-.card img {
+/* SVG区域 */
+.hero {
     width: 100%;
     height: 260px;
-    object-fit: cover;
+    background: linear-gradient(135deg, #ffe3f1, #fff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-/* 文字 */
+/* 标题 */
 .title {
     font-size: 26px;
     font-weight: bold;
@@ -42,6 +45,7 @@ body {
     margin-top: 20px;
 }
 
+/* 文字 */
 .text {
     padding: 15px 20px 30px;
     font-size: 16px;
@@ -51,7 +55,6 @@ body {
 
 .heart {
     color: red;
-    font-size: 20px;
 }
 </style>
 
@@ -61,15 +64,46 @@ body {
 
 <div class="card">
 
-    <!-- 妈妈图片（温柔母亲形象） -->
-    <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=800&q=80" alt="妈妈">
+    <!-- 动漫风妈妈插画（SVG） -->
+    <div class="hero">
+
+        <svg width="200" height="200" viewBox="0 0 200 200">
+
+            <!-- 头发 -->
+            <path d="M50 80 Q100 10 150 80 Q140 140 60 140 Q40 100 50 80"
+                  fill="#3b2f2f"/>
+
+            <!-- 脸 -->
+            <circle cx="100" cy="95" r="40" fill="#ffd7c2"/>
+
+            <!-- 眼睛 -->
+            <circle cx="85" cy="90" r="5" fill="#000"/>
+            <circle cx="115" cy="90" r="5" fill="#000"/>
+
+            <!-- 微笑 -->
+            <path d="M85 110 Q100 125 115 110"
+                  stroke="#000" stroke-width="3" fill="none"/>
+
+            <!-- 身体 -->
+            <path d="M60 150 Q100 180 140 150"
+                  fill="#ff7aa2"/>
+
+            <!-- 花装饰 -->
+            <circle cx="40" cy="60" r="6" fill="#ffb6c1"/>
+            <circle cx="160" cy="60" r="6" fill="#ffb6c1"/>
+            <circle cx="30" cy="120" r="4" fill="#ffd1dc"/>
+            <circle cx="170" cy="120" r="4" fill="#ffd1dc"/>
+
+        </svg>
+
+    </div>
 
     <div class="title">🎂 祝妈妈生日快乐 🎂</div>
 
     <div class="text">
         妈妈，生日快乐！<br><br>
-        感谢你一直以来的照顾与陪伴 ❤️<br>
-        愿你每天都开心、健康、温柔如初 🌷<br><br>
+        谢谢你一直的照顾与陪伴 ❤️<br>
+        愿你每天都开心、健康、温柔 🌷<br><br>
         <span class="heart">❤</span> 我爱你
     </div>
 
