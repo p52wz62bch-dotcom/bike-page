@@ -3,172 +3,236 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>单车终点完整版</title>
+<title>横版骑行游戏</title>
 
 <style>
 body {
     margin: 0;
     overflow: hidden;
     font-family: -apple-system;
-    background: linear-gradient(#cfe8ff, #ffffff);
+    background: #87c7ff;
 }
 
-.scene {
+/* 世界容器 */
+.world {
     position: relative;
     width: 100vw;
     height: 100vh;
+    overflow: hidden;
 }
 
-/* 路 */
-.road {
+/* 背景（滚动天空） */
+.sky {
+    position: absolute;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(#87c7ff, #ffffff);
+    animation: skyMove 8s linear infinite;
+}
+
+/* 地面（滚动） */
+.ground {
     position: absolute;
     bottom: 0;
     width: 300%;
     height: 140px;
     background: #2b2b2b;
+    animation: move 3s linear infinite;
 }
 
-/* 单车 */
+/* 路面线 */
+.ground::after {
+    content: "";
+    position: absolute;
+    top: 60px;
+    width: 100%;
+    height: 6px;
+    background: repeating-linear-gradient(
+        90deg,
+        white 0px,
+        white 50px,
+        transparent 50px,
+        transparent 100px
+    );
+}
+
+/* 单车（固定在屏幕中间） */
 .bike {
     position: absolute;
     bottom: 160px;
-    left: 0;
-    width: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
     height: 60px;
 }
 
 /* 车轮 */
 .wheel {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border: 3px solid black;
     border-radius: 50%;
     position: absolute;
     bottom: 0;
+    animation: spin 0.5s linear infinite;
 }
 
-/* 车架（恢复了！！） */
-.frame {
+/* 金币 */
+.coin {
     position: absolute;
-    width: 50px;
-    height: 3px;
-    background: black;
-    top: 25px;
-    left: 20px;
-    transform: rotate(20deg);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: gold;
 }
 
-/* 终点 */
-.finish {
+/* 障碍 */
+.obstacle {
     position: absolute;
-    right: 80px;
-    bottom: 140px;
-    width: 10px;
-    height: 120px;
+    width: 22px;
+    height: 22px;
     background: red;
 }
 
 /* UI */
 .ui {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 10px;
+    left: 10px;
     z-index: 10;
+    color: #000;
 }
 
 button {
-    padding: 10px 14px;
+    padding: 8px 12px;
     border: none;
+    border-radius: 8px;
     background: black;
     color: white;
-    border-radius: 10px;
 }
 
-/* 胜利 */
-.win {
-    position: absolute;
-    top: 40%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 40px;
-    display: none;
-    color: green;
+/* 动画 */
+@keyframes move {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@keyframes skyMove {
+    from { transform: translateX(0); }
+    to { transform: translateX(-20%); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 </style>
 </head>
 
 <body>
 
-<div class="scene">
+<div class="world">
 
-    <div class="ui">
-        🚲 距离：<span id="dist">0</span><br><br>
-        <button id="rideBtn">按住骑行</button>
-    </div>
+    <div class="sky"></div>
 
-    <div class="bike" id="bike">
+    <div class="ground" id="ground"></div>
+
+    <div class="bike">
         <div class="wheel" style="left:0;"></div>
         <div class="wheel" style="right:0;"></div>
-        <div class="frame"></div>
     </div>
 
-    <div class="road"></div>
-
-    <div class="finish"></div>
-
-    <div class="win" id="win">🏆 通关成功！</div>
+    <div class="ui">
+        🚲 分数：<span id="score">0</span><br><br>
+        <button onclick="speedUp()">加速</button>
+        <button onclick="speedDown()">减速</button>
+    </div>
 
 </div>
 
 <script>
-let x = 0;
-let riding = false;
-let speed = 0;
 
-const bike = document.getElementById("bike");
-const dist = document.getElementById("dist");
-const win = document.getElementById("win");
+let speed = 3;
+let score = 0;
 
-const btn = document.getElementById("rideBtn");
-
-/* 兼容手机 + iPad + 鼠标 */
-btn.addEventListener("touchstart", start);
-btn.addEventListener("mousedown", start);
-
-btn.addEventListener("touchend", stop);
-btn.addEventListener("mouseup", stop);
-
-function start() {
-    riding = true;
-    speed = 4;
+/* 控制速度 = 世界移动速度 */
+function speedUp() {
+    speed += 1;
+    updateSpeed();
 }
 
-function stop() {
-    riding = false;
-    speed = 0;
+function speedDown() {
+    speed = Math.max(1, speed - 1);
+    updateSpeed();
+}
+
+function updateSpeed() {
+    document.getElementById("ground").style.animationDuration = (3 / speed) + "s";
+}
+
+/* 金币 */
+function spawnCoin() {
+    const coin = document.createElement("div");
+    coin.className = "coin";
+    coin.style.left = window.innerWidth + "px";
+    coin.style.top = (Math.random() * 200 + 200) + "px";
+    document.body.appendChild(coin);
+
+    let x = window.innerWidth;
+
+    let move = setInterval(() => {
+        x -= speed * 3;
+        coin.style.left = x + "px";
+
+        if (x < -50) {
+            coin.remove();
+            clearInterval(move);
+        }
+
+        // 碰撞（简化）
+        if (x < window.innerWidth / 2 + 40 && x > window.innerWidth / 2 - 40) {
+            score += 10;
+            document.getElementById("score").innerText = score;
+            coin.remove();
+            clearInterval(move);
+        }
+    }, 30);
+}
+
+/* 障碍 */
+function spawnObstacle() {
+    const obs = document.createElement("div");
+    obs.className = "obstacle";
+    obs.style.left = window.innerWidth + "px";
+    obs.style.bottom = "160px";
+    document.body.appendChild(obs);
+
+    let x = window.innerWidth;
+
+    let move = setInterval(() => {
+        x -= speed * 4;
+        obs.style.left = x + "px";
+
+        if (x < -50) {
+            obs.remove();
+            clearInterval(move);
+        }
+
+        if (x < window.innerWidth / 2 + 30 && x > window.innerWidth / 2 - 30) {
+            score -= 10;
+            document.getElementById("score").innerText = score;
+            obs.remove();
+            clearInterval(move);
+        }
+    }, 30);
 }
 
 /* 游戏循环 */
-function loop() {
-    if (riding) {
-        x += speed;
-        bike.style.left = x + "px";
-        dist.innerText = Math.floor(x);
+setInterval(spawnCoin, 2000);
+setInterval(spawnObstacle, 3000);
 
-        checkWin();
-    }
+updateSpeed();
 
-    requestAnimationFrame(loop);
-}
-
-function checkWin() {
-    if (x > 900) {
-        win.style.display = "block";
-        riding = false;
-    }
-}
-
-loop();
 </script>
 
 </body>
