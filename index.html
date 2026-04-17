@@ -3,49 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>单车小游戏</title>
+<title>单车终点赛</title>
 
 <style>
 body {
     margin: 0;
     font-family: Arial;
-    background: #cfe8ff;
     overflow: hidden;
+    background: #cfe8ff;
 }
 
-/* UI */
-.ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 10;
-    font-size: 16px;
-}
-
-button {
-    margin: 3px;
-    padding: 8px 12px;
-    border: none;
-    border-radius: 8px;
-    background: black;
-    color: white;
+/* 游戏区域 */
+.game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
 }
 
 /* 跑道 */
 .road {
     position: absolute;
     bottom: 0;
-    width: 100%;
+    width: 200%;
     height: 120px;
     background: #333;
+}
+
+/* 路面线 */
+.line {
+    position: absolute;
+    top: 55px;
+    width: 100%;
+    height: 10px;
+    background: repeating-linear-gradient(
+        90deg,
+        white 0px,
+        white 40px,
+        transparent 40px,
+        transparent 80px
+    );
 }
 
 /* 单车 */
 .bike {
     position: absolute;
-    bottom: 120px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 130px;
+    left: 100px;
     width: 60px;
     height: 60px;
 }
@@ -63,21 +66,38 @@ button {
 .wheel.left { left: 0; bottom: 0; }
 .wheel.right { right: 0; bottom: 0; }
 
-/* 金币 */
-.coin {
+/* 终点线 */
+.finish {
     position: absolute;
-    width: 20px;
-    height: 20px;
-    background: gold;
-    border-radius: 50%;
+    right: 50px;
+    bottom: 120px;
+    width: 10px;
+    height: 150px;
+    background: red;
 }
 
-/* 障碍 */
-.obstacle {
+/* UI */
+.ui {
     position: absolute;
-    width: 25px;
-    height: 25px;
-    background: red;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+}
+
+button {
+    padding: 8px 12px;
+    margin: 3px;
+}
+
+/* 胜利弹窗 */
+.win {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    display: none;
+    color: green;
 }
 
 /* 动画 */
@@ -90,137 +110,48 @@ button {
 
 <body>
 
-<div class="ui">
-    🚲 分数: <span id="score">0</span><br>
-    ⚡ 速度: <span id="speed">1</span><br>
-    <button onclick="moveLeft()">⬅</button>
-    <button onclick="moveRight()">➡</button>
-    <button onclick="speedUp()">加速</button>
-    <button onclick="speedDown()">减速</button>
-</div>
+<div class="game">
 
-<div class="bike" id="bike">
-    <div class="wheel left"></div>
-    <div class="wheel right"></div>
-</div>
+    <div class="ui">
+        🚲 距离：<span id="distance">0</span> m<br>
+        <button onclick="move()">前进</button>
+    </div>
 
-<div class="road"></div>
+    <div class="bike" id="bike">
+        <div class="wheel left"></div>
+        <div class="wheel right"></div>
+    </div>
+
+    <div class="road">
+        <div class="line"></div>
+    </div>
+
+    <div class="finish"></div>
+
+    <div class="win" id="win">🏆 通关成功！</div>
+
+</div>
 
 <script>
-let score = 0;
-let speed = 1;
-let bikeX = window.innerWidth / 2;
-const bike = document.getElementById("bike");
+let distance = 0;
+let speed = 5;
+let bike = document.getElementById("bike");
+let win = document.getElementById("win");
 
-function update() {
-    document.getElementById("score").innerText = score;
-    document.getElementById("speed").innerText = speed;
+function move() {
+    distance += speed;
+    document.getElementById("distance").innerText = distance;
 
-    document.querySelectorAll(".wheel").forEach(w => {
-        w.style.animationDuration = (0.5 / speed) + "s";
-    });
+    bike.style.left = (100 + distance) + "px";
 
-    bike.style.left = bikeX + "px";
+    checkWin();
 }
 
-function moveLeft() {
-    bikeX -= 20;
-    update();
+function checkWin() {
+    if (distance >= 500) {
+        win.style.display = "block";
+    }
 }
-
-function moveRight() {
-    bikeX += 20;
-    update();
-}
-
-function speedUp() {
-    speed += 0.5;
-    update();
-}
-
-function speedDown() {
-    speed = Math.max(0.5, speed - 0.5);
-    update();
-}
-
-/* 随机金币 */
-function spawnCoin() {
-    const coin = document.createElement("div");
-    coin.className = "coin";
-    coin.style.left = Math.random() * window.innerWidth + "px";
-    coin.style.top = "-20px";
-    document.body.appendChild(coin);
-
-    let y = -20;
-
-    let fall = setInterval(() => {
-        y += 3 * speed;
-        coin.style.top = y + "px";
-
-        if (y > window.innerHeight) {
-            coin.remove();
-            clearInterval(fall);
-        }
-
-        // 碰撞检测
-        const bikeRect = bike.getBoundingClientRect();
-        const coinRect = coin.getBoundingClientRect();
-
-        if (
-            coinRect.left < bikeRect.right &&
-            coinRect.right > bikeRect.left &&
-            coinRect.top < bikeRect.bottom &&
-            coinRect.bottom > bikeRect.top
-        ) {
-            score += 10;
-            coin.remove();
-            clearInterval(fall);
-            update();
-        }
-    }, 30);
-}
-
-/* 障碍 */
-function spawnObstacle() {
-    const obs = document.createElement("div");
-    obs.className = "obstacle";
-    obs.style.left = Math.random() * window.innerWidth + "px";
-    obs.style.top = "-20px";
-    document.body.appendChild(obs);
-
-    let y = -20;
-
-    let fall = setInterval(() => {
-        y += 4 * speed;
-        obs.style.top = y + "px";
-
-        if (y > window.innerHeight) {
-            obs.remove();
-            clearInterval(fall);
-        }
-
-        const bikeRect = bike.getBoundingClientRect();
-        const obsRect = obs.getBoundingClientRect();
-
-        if (
-            obsRect.left < bikeRect.right &&
-            obsRect.right > bikeRect.left &&
-            obsRect.top < bikeRect.bottom &&
-            obsRect.bottom > bikeRect.top
-        ) {
-            score -= 10;
-            obs.remove();
-            clearInterval(fall);
-            update();
-        }
-    }, 30);
-}
-
-/* 游戏循环 */
-setInterval(spawnCoin, 2000);
-setInterval(spawnObstacle, 3000);
-
-update();
 </script>
 
 </body>
